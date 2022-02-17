@@ -1,7 +1,9 @@
 import 'dart:ffi';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:insulin/constants.dart';
 import 'package:insulin/cubit/cubit.dart';
 import 'package:insulin/cubit/status.dart';
 
@@ -18,8 +20,9 @@ class Home extends StatelessWidget {
       child: BlocConsumer<AppCubit, Status>(
           listener: (context, state) {},
           builder: (context, state) {
-            AppCubit cubit = AppCubit.get(context);
-            TableRow BuildRow(List<String> cells, isheader) {
+            AppCubit cub = AppCubit.get(context);
+            var time, dose;
+            TableRow BuildRow(List cells, isheader) {
               return TableRow(
                   children: cells.map((cell) {
                 final style = TextStyle(
@@ -28,11 +31,17 @@ class Home extends StatelessWidget {
 
                 return Padding(
                   padding: const EdgeInsets.all(20),
-                  child: Center(
-                      child: Text(
-                    cell,
-                    style: style,
-                  )),
+                  child: (cell != null)
+                      ? Center(
+                          child: Text(
+                          cell,
+                          style: style,
+                        ))
+                      : Center(
+                          child: Text(
+                          '',
+                          style: style,
+                        )),
                 );
               }).toList());
             }
@@ -70,7 +79,7 @@ class Home extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              'Hi,Amer Ashraf ! ',
+                              'Hi,${cubit?.currentUser?.data?.firstName} ${cubit?.currentUser?.data?.lastName} ! ',
                               style: TextStyle(fontWeight: FontWeight.w500),
                             ),
                             Container(
@@ -89,54 +98,75 @@ class Home extends StatelessWidget {
                     SizedBox(
                       height: 40,
                     ),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          SizedBox(
-                            width: width * .45,
-                            child: TextFormField(
-                              cursorColor: Colors.black,
-                              decoration: InputDecoration(
-                                labelText: 'Enter Your Dose',
-                                labelStyle: TextStyle(color: Colors.grey[600]),
-                                enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                        color: Colors.blueAccent.shade700)),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                        color: Colors.blueAccent.shade700)),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                        color: Colors.blueAccent.shade700)),
+                    Form(
+                      key: cub.formKey,
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            SizedBox(
+                              width: width * .45,
+                              child: TextFormField(
+                                validator: (val) {
+                                  if (val == null ||
+                                      val != null && val.length == 0)
+                                    return 'required';
+                                },
+                                onSaved: (val) {
+                                  dose = val;
+                                },
+                                cursorColor: Colors.black,
+                                decoration: InputDecoration(
+                                  labelText: 'Enter Your Dose',
+                                  labelStyle:
+                                      TextStyle(color: Colors.grey[600]),
+                                  enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(
+                                          color: Colors.blueAccent.shade700)),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(
+                                          color: Colors.blueAccent.shade700)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(
+                                          color: Colors.blueAccent.shade700)),
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: width * .45,
-                            child: TextFormField(
-                              cursorColor: Colors.black,
-                              decoration: InputDecoration(
-                                labelText: 'Enter Time of Dose',
-                                labelStyle: TextStyle(color: Colors.grey[600]),
-                                enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                        color: Colors.blueAccent.shade700)),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                        color: Colors.blueAccent.shade700)),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(
-                                        color: Colors.blueAccent.shade700)),
+                            SizedBox(
+                              width: width * .45,
+                              child: TextFormField(
+                                cursorColor: Colors.black,
+                                validator: (val) {
+                                  if (val == null ||
+                                      val != null && val.length == 0)
+                                    return 'required';
+                                },
+                                onSaved: (val) {
+                                  time = val;
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Enter Time of Dose',
+                                  labelStyle:
+                                      TextStyle(color: Colors.grey[600]),
+                                  enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(
+                                          color: Colors.blueAccent.shade700)),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(
+                                          color: Colors.blueAccent.shade700)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(
+                                          color: Colors.blueAccent.shade700)),
+                                ),
                               ),
-                            ),
-                          )
-                        ]),
+                            )
+                          ]),
+                    ),
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 20),
@@ -148,7 +178,24 @@ class Home extends StatelessWidget {
                                 primary: Colors.blueAccent.shade700,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20))),
-                            onPressed: () {},
+                            onPressed: () async {
+                              var formdata = cub.formKey.currentState;
+                              if (formdata != null && formdata.validate()) {
+                                formdata.save();
+
+                                bool response =
+                                    cubit?.addDose(time: time, dose: dose);
+                                print('${response}-------------');
+                                if (response == false) {
+                                  AwesomeDialog(
+                                      context: context,
+                                      dialogType: DialogType.WARNING,
+                                      desc: 'Table is full',
+                                      btnOkOnPress: () {})
+                                    ..show();
+                                }
+                              }
+                            },
                             child: Text(
                               'Submit',
                               style:
@@ -173,16 +220,22 @@ class Home extends StatelessWidget {
                               child: Table(
                                 border: TableBorder.all(
                                     borderRadius: BorderRadius.circular(20)),
-                                children: [
-                                  BuildRow(
-                                      ['Time', 'Dose', 'Check Mark'], true),
-                                  BuildRow(
-                                      ['Time', 'Dose', 'Check Mark'], false),
-                                  BuildRow(
-                                      ['Time', 'Dose', 'Check Mark'], false),
-                                  BuildRow(
-                                      ['Time', 'Dose', 'Check Mark'], false),
-                                ],
+                                children: List.generate(
+                                    4,
+                                    (index) => BuildRow([
+                                          (index == 0)
+                                              ? 'Time'
+                                              : cubit?.dataTable?[index - 1]
+                                                  ['time'],
+                                          (index == 0)
+                                              ? 'Dose'
+                                              : cubit?.dataTable?[index - 1]
+                                                  ['time'],
+                                          (index == 0)
+                                              ? 'Check Mark'
+                                              : cubit?.dataTable?[index - 1]
+                                                  ['check'],
+                                        ], (index == 0) ? true : false)),
                               ),
                             ),
                           ),
@@ -372,9 +425,9 @@ class Home extends StatelessWidget {
                     type: BottomNavigationBarType.fixed,
                     backgroundColor: Colors.blueAccent.shade700,
                     selectedItemColor: Colors.white,
-                    currentIndex: cubit.indexPage!,
+                    currentIndex: cubit!.indexPage!,
                     onTap: (index) {
-                      cubit.ChangePage(index);
+                      cubit?.ChangePage(index);
                     },
                     items: [
                       BottomNavigationBarItem(

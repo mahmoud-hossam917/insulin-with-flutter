@@ -91,8 +91,9 @@ class _WelcomeState extends State<Welcome> {
                                 primary: Colors.blueAccent.shade700,
                                 shape: CircleBorder()),
                             onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => Login()));
+                              Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                      builder: (context) => Login()));
                             },
                             child: Icon(
                               Icons.arrow_forward_ios,
