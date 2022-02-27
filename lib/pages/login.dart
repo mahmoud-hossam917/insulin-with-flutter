@@ -8,6 +8,7 @@ import 'package:insulin/cubit/cubit.dart';
 import 'package:insulin/cubit/status.dart';
 import 'package:insulin/pages/Home.dart';
 import 'package:insulin/pages/signup.dart';
+import 'package:insulin/sharedpreference/shared.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 class Login extends StatelessWidget {

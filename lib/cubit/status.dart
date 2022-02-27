@@ -24,8 +24,22 @@ class loginErrorState extends Status {
   loginErrorState(this.error);
 }
 
+class LoadingDose extends Status {}
+
 class AddDose extends Status {}
+
+class AddDoseError extends Status {
+  final error;
+  AddDoseError(this.error);
+}
 
 class EditDose extends Status {}
 
 class DeleteDose extends Status {}
+
+class GetDosesSuccessfully extends Status {}
+
+class GetDosesError extends Status {
+  final error;
+  GetDosesError(this.error);
+}

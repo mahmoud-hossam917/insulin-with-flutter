@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:insulin/constants.dart';
 import 'package:insulin/cubit/status.dart';
 import 'package:insulin/models/user_model.dart';
 import 'package:insulin/network/remote.dart';
+import 'package:insulin/pages/Home.dart';
+import 'package:insulin/pages/Homepage.dart';
+import 'package:insulin/pages/history.dart';
+import 'package:insulin/pages/settings.dart';
+import 'package:insulin/pages/statistcs.dart';
+import 'package:insulin/sharedpreference/shared.dart';
 
 class AppCubit extends Cubit<Status> {
   AppCubit() : super(intiState());
 
   static AppCubit get(context) => BlocProvider.of(context);
   int? indexPage = 0;
+  List pages = [Homepage(), Statistics(), History(), Settings()];
   String type = 'Gender';
   GlobalKey<FormState> formKey = GlobalKey();
   List<Map<String, dynamic>>? dataTable = [
@@ -70,24 +78,57 @@ class AppCubit extends Cubit<Status> {
         data: {'email': email, 'password': password}).then((value) {
       emit(loginSuccessState());
       currentUser = HomeModel.fromjeson(jeson: value.data);
+      CachHelper.putData('email', email);
+      CachHelper.putData('password', password);
+      CachHelper.putData('first', currentUser!.data!.firstName);
+      CachHelper.putData('last', currentUser!.data!.lastName);
+      CachHelper.putData('id', currentUser!.data!.id);
+      CachHelper.putData('phone', currentUser!.data!.phone);
+      CachHelper.putData('age', currentUser!.data!.age);
+      CachHelper.putData('image', currentUser!.data!.image);
+      CachHelper.putData('gender', currentUser!.data!.gender);
     }).catchError((onError) {
       emit(loginErrorState(onError));
       print(onError.toString());
     });
   }
 
-  addDose({required var time, required var dose}) {
+  addDose({required String time, required String dose}) {
     for (int i = 0; i < 3; i++) {
-      print('${dataTable?[i]['time']}------------------------');
       if (dataTable?[i]['time'] == '') {
         dataTable![i]['time'] = time;
         dataTable![i]['dose'] = dose;
-        print('${time} ------ ${dose}');
         emit(AddDose());
         return true;
       }
     }
     return false;
+  }
+
+  addDose2(
+      {required String time, required String dose, required userID}) async {
+    emit(LoadingDose());
+    await DioHelper.postData(url: DOSE, data: {
+      'amount': dose,
+      'datetime': time,
+      'userid': userID,
+      'taken': false
+    }).then((value) {
+      emit(AddDose());
+    }).catchError((onError) {
+      emit(AddDoseError(onError.toString()));
+    });
+  }
+
+  GetAllDoses({required int userID}) async {
+    emit(LoadingDose());
+    await DioHelper.getData(url: userDoses, data: {'userid': userID})
+        .then((value) {
+      print(value.data);
+      emit(GetDosesSuccessfully());
+    }).catchError((onError) {
+      emit(GetDosesError(onError.toString()));
+    });
   }
 
   editDose(
