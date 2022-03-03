@@ -43,3 +43,23 @@ class GetDosesError extends Status {
   final error;
   GetDosesError(this.error);
 }
+
+class GetTime extends Status {}
+
+class LoadingDeleteDose extends Status {}
+
+class SuccessDeleteDose extends Status {}
+
+class ErrorDeleteDose extends Status {
+  final error;
+  ErrorDeleteDose(this.error);
+}
+
+class LoadingUpdateDose extends Status {}
+
+class SuccessUpdateDose extends Status {}
+
+class ErrorUpdateDose extends Status {
+  final error;
+  ErrorUpdateDose(this.error);
+}

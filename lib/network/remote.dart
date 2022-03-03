@@ -20,4 +20,18 @@ class DioHelper {
     dynamic ret = await dio?.get(url, queryParameters: data);
     return ret;
   }
+
+  static Future<Response> deleteData(
+      {required String url, Map<String, dynamic>? data}) async {
+    dynamic ret = await dio?.delete(url, queryParameters: data);
+    return ret;
+  }
+
+  static Future<Response> putData(
+      {required String url, required Map<String, dynamic> data}) {
+    dynamic ret = dio?.put(url, queryParameters: data);
+
+    print(ret);
+    return ret;
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:insulin/constants.dart';
 import 'package:insulin/cubit/status.dart';
+import 'package:insulin/models/dosemodel.dart';
 import 'package:insulin/models/user_model.dart';
 import 'package:insulin/network/remote.dart';
 import 'package:insulin/pages/Home.dart';
@@ -19,16 +20,17 @@ class AppCubit extends Cubit<Status> {
   List pages = [Homepage(), Statistics(), History(), Settings()];
   String type = 'Gender';
   GlobalKey<FormState> formKey = GlobalKey();
-  List<Map<String, dynamic>>? dataTable = [
-    {'time': '', 'dose': '', 'check': ''},
-    {'time': '', 'dose': '', 'check': ''},
-    {'time': '', 'dose': '', 'check': ''},
-    {'time': '', 'dose': '', 'check': ''}
-  ];
+  DoseModel? Doeses;
   HomeModel? currentUser;
+  TimeOfDay time = TimeOfDay.now();
+  TimeOfDay? picked;
   ChangePage(index) {
     indexPage = index;
     emit(ChangePageState());
+  }
+
+  selectTime() {
+    emit(GetTime());
   }
 
   SignUp(
@@ -93,20 +95,7 @@ class AppCubit extends Cubit<Status> {
     });
   }
 
-  addDose({required String time, required String dose}) {
-    for (int i = 0; i < 3; i++) {
-      if (dataTable?[i]['time'] == '') {
-        dataTable![i]['time'] = time;
-        dataTable![i]['dose'] = dose;
-        emit(AddDose());
-        return true;
-      }
-    }
-    return false;
-  }
-
-  addDose2(
-      {required String time, required String dose, required userID}) async {
+  addDose({required String time, required String dose, required userID}) async {
     emit(LoadingDose());
     await DioHelper.postData(url: DOSE, data: {
       'amount': dose,
@@ -114,7 +103,9 @@ class AppCubit extends Cubit<Status> {
       'userid': userID,
       'taken': false
     }).then((value) {
+      print(value.data);
       emit(AddDose());
+      print(value.data);
     }).catchError((onError) {
       emit(AddDoseError(onError.toString()));
     });
@@ -125,29 +116,41 @@ class AppCubit extends Cubit<Status> {
     await DioHelper.getData(url: userDoses, data: {'userid': userID})
         .then((value) {
       print(value.data);
+      Doeses = DoseModel.fromjeson(value.data);
       emit(GetDosesSuccessfully());
     }).catchError((onError) {
       emit(GetDosesError(onError.toString()));
     });
   }
 
-  editDose(
-      {required String time,
-      required String dose,
-      required bool check,
-      required int index}) {
-    dataTable?[index]['time'] = time;
-    dataTable?[index]['dose'] = dose;
-    dataTable?[index]['check'] = check;
-    emit(EditDose());
+  DeleteDose({required int id}) async {
+    emit(LoadingDeleteDose());
+    await DioHelper.deleteData(url: DeleteDOSE, data: {'id': id}).then((value) {
+      for (int i = 0; i < Doeses!.Doses.length; i++) {
+        if (Doeses!.Doses[i].doseID == id) {
+          Doeses!.Doses.remove(Doeses!.Doses[i]);
+        }
+      }
+      emit(SuccessDeleteDose());
+    }).catchError((onError) {
+      emit(ErrorDeleteDose(onError.toString()));
+    });
   }
 
-  deleteDose({required int index}) {
-    for (int i = index; i < 3; i++) {
-      dataTable?[i]['time'] = dataTable?[i + 1]['time'];
-      dataTable?[i]['dose'] = dataTable?[i + 1]['dose'];
-      dataTable?[i]['check'] = dataTable?[i + 1]['check'];
-    }
-    emit(DeleteDose());
+  UpdateDose(
+      {required String time, required int dose, required int index}) async {
+    print(Doeses!.Doses[index].doseID);
+    emit(LoadingUpdateDose());
+    await DioHelper.postData(url: UpdateDOSE, data: {
+      'id': Doeses!.Doses[index].doseID,
+      'amount': dose,
+      'datetime': time,
+      'taken': Doeses!.Doses[index].isTaken,
+      'userid': Doeses!.Doses[index].userID
+    }).then((value) {
+      emit(SuccessUpdateDose());
+    }).catchError((onError) {
+      emit(ErrorUpdateDose(onError.toString()));
+    });
   }
 }

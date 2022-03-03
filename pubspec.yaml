@@ -42,6 +42,7 @@ dependencies:
   charts_flutter: ^0.12.0
   pie_chart: ^5.1.0
   shared_preferences: ^2.0.13
+  conditional_builder_null_safety: ^0.0.6
 dev_dependencies:
   flutter_test:
     sdk: flutter

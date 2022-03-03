@@ -23,59 +23,6 @@ class Home extends StatelessWidget {
           builder: (context, state) {
             AppCubit cub = AppCubit.get(context);
             var time, dose;
-            TableRow BuildRow(int index, isheader) {
-              final style = TextStyle(
-                  fontWeight: (isheader) ? FontWeight.bold : null,
-                  fontSize: 13);
-              if (isheader == true) {
-                return TableRow(children: [
-                  Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Center(
-                          child: Text(
-                        'Time',
-                        style: style,
-                      ))),
-                  Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Center(
-                          child: Text(
-                        'Dose',
-                        style: style,
-                      ))),
-                  Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Center(
-                          child: Text(
-                        'Check Mark',
-                        style: style,
-                      )))
-                ]);
-              }
-              return TableRow(children: [
-                Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Center(
-                        child: Text(
-                      cubit?.dataTable?[index - 1]['time'],
-                      style: style,
-                    ))),
-                Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Center(
-                        child: Text(
-                      cubit?.dataTable?[index - 1]['dose'],
-                      style: style,
-                    ))),
-                Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Center(
-                        child: Text(
-                      cubit?.dataTable?[index - 1]['check'],
-                      style: style,
-                    )))
-              ]);
-            }
 
             return Scaffold(
               backgroundColor: Colors.white,

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:insulin/constants.dart';
 import 'package:insulin/cubit/cubit.dart';
 import 'package:insulin/cubit/status.dart';
+import 'package:insulin/pages/editdose.dart';
 
 class Homepage extends StatelessWidget {
   const Homepage({Key? key}) : super(key: key);
@@ -14,11 +15,103 @@ class Homepage extends StatelessWidget {
     var width = MediaQuery.of(context).size.width;
     var time, dose;
     return BlocProvider(
-      create: (context) => AppCubit(),
+      create: (context) =>
+          AppCubit()..GetAllDoses(userID: cubit!.currentUser!.data!.id!),
       child: BlocConsumer<AppCubit, Status>(
         listener: (context, state) {},
         builder: (context, state) {
           AppCubit cub = AppCubit.get(context);
+
+          SelectTime() async {
+            cub.picked = await showTimePicker(
+              context: context,
+              initialTime: (cub.picked != null) ? cub.picked! : cub.time,
+            );
+          }
+
+          Process(int index) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => EditDosePage(
+                                index: index,
+                              )));
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                            width: 15,
+                            height: 15,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle, color: Colors.green)),
+                        MyText('Edit', Colors.black, 10.0, FontWeight.bold)
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                    onTap: () async {
+                      await cub.DeleteDose(
+                          id: cub.Doeses!.Doses[index - 1].doseID!);
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                            width: 15,
+                            height: 15,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle, color: Colors.red)),
+                        MyText('Delete', Colors.black, 10.0, FontWeight.bold)
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            );
+          }
+
+          check(bool state) {
+            return Center(
+              child: Icon(
+                (state) ? Icons.done : Icons.close,
+                size: 30,
+                color: (state) ? Colors.green : Colors.red,
+              ),
+            );
+          }
+
+          cell(text, size) {
+            return Padding(
+              padding: EdgeInsets.all(5),
+              child: Center(
+                  child: MyText(text, Colors.black, size, FontWeight.bold)),
+            );
+          }
+
+          TableRow BuildRow(int index) {
+            if (index == 0) {
+              return TableRow(children: [
+                cell('Time', 16.0),
+                cell('Dose', 16.0),
+                cell('Check Mark', 16.0),
+                Container()
+              ]);
+            }
+            return TableRow(children: [
+              cell(cub.Doeses!.Doses[index - 1].doseDate, 13.0),
+              cell(cub.Doeses!.Doses[index - 1].doseAmount.toString(), 13.0),
+              check(cub.Doeses!.Doses[index - 1].isTaken!),
+              Process(index)
+            ]);
+          }
+
           return SafeArea(
               child: SingleChildScrollView(
             child: Column(
@@ -68,13 +161,13 @@ class Homepage extends StatelessWidget {
                 SizedBox(
                   height: 40,
                 ),
-                Form(
-                  key: cub.formKey,
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        SizedBox(
-                          width: width * .45,
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(
+                        width: width * .45,
+                        child: Form(
+                          key: cub.formKey,
                           child: TextFormField(
                             validator: (val) {
                               if (val == null || val != null && val.length == 0)
@@ -102,37 +195,50 @@ class Homepage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          width: width * .45,
-                          child: TextFormField(
-                            cursorColor: Colors.black,
-                            validator: (val) {
-                              if (val == null || val != null && val.length == 0)
-                                return 'required';
-                            },
-                            onSaved: (val) {
-                              time = val;
-                            },
-                            decoration: InputDecoration(
-                              labelText: 'Enter Time of Dose',
-                              labelStyle: TextStyle(color: Colors.grey[600]),
-                              enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(
-                                      color: Colors.blueAccent.shade700)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(
-                                      color: Colors.blueAccent.shade700)),
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(
-                                      color: Colors.blueAccent.shade700)),
+                      ),
+                      SizedBox(
+                        width: width * .45,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: width * .36,
+                              child: InkWell(
+                                onTap: () async {
+                                  await SelectTime();
+                                  cub.selectTime();
+                                },
+                                child: Container(
+                                  height: 55,
+                                  decoration: BoxDecoration(
+                                      border:
+                                          Border.all(color: Colors.blueAccent),
+                                      borderRadius: BorderRadius.circular(20)),
+                                  child: Center(
+                                    child: Text(
+                                      (cub != null)
+                                          ? (cub.picked != null)
+                                              ? '${cub.picked!.hour}:${cub.picked!.minute}'
+                                              : "00:00:00"
+                                          : "00:00:00",
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        )
-                      ]),
-                ),
+                            InkWell(
+                                onTap: () async {
+                                  await SelectTime();
+                                  cub.selectTime();
+                                },
+                                child: Icon(
+                                  Icons.timer,
+                                  color: Colors.blueAccent[700],
+                                ))
+                          ],
+                        ),
+                      )
+                    ]),
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 20),
@@ -148,18 +254,20 @@ class Homepage extends StatelessWidget {
                           var formdata = cub.formKey.currentState;
                           if (formdata != null && formdata.validate()) {
                             formdata.save();
+                            DateTime now = new DateTime.now();
+                            DateTime date = new DateTime(now.year, now.month,
+                                now.day, cub.picked!.hour, cub.picked!.minute);
+                            String d = date.toString();
+                            String result = d.replaceAll(' ', 'T');
+                            await cub.addDose(
+                                time: result,
+                                dose: dose,
+                                userID: cubit!.currentUser!.data!.id);
+                            await cub.GetAllDoses(
+                                userID: cubit!.currentUser!.data!.id!);
+                            cub.picked = null;
 
-                            bool response = cub.addDose(time: time, dose: dose);
                             formdata.reset();
-                            print('${response}-------------');
-                            if (response == false) {
-                              AwesomeDialog(
-                                  context: context,
-                                  dialogType: DialogType.WARNING,
-                                  desc: 'Table is full',
-                                  btnOkOnPress: () {})
-                                ..show();
-                            }
                           }
                         },
                         child: Text(
@@ -174,246 +282,16 @@ class Homepage extends StatelessWidget {
                   height: 20,
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: Padding(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: Table(
-                              border: TableBorder.all(
-                                  borderRadius: BorderRadius.circular(20)),
-                              children: List.generate(4, (index) {
-                                final style = TextStyle(
-                                    fontWeight:
-                                        (index == 0) ? FontWeight.bold : null,
-                                    fontSize: 13);
-                                if (index == 0) {
-                                  return TableRow(children: [
-                                    Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Center(
-                                            child: Text(
-                                          'Time',
-                                          style: style,
-                                        ))),
-                                    Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Center(
-                                            child: Text(
-                                          'Dose',
-                                          style: style,
-                                        ))),
-                                    Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Center(
-                                            child: Text(
-                                          'Check Mark',
-                                          style: style,
-                                        )))
-                                  ]);
-                                }
-                                return TableRow(children: [
-                                  Padding(
-                                      padding: const EdgeInsets.all(20),
-                                      child: Center(
-                                          child: Text(
-                                        cub.dataTable?[index - 1]['time'],
-                                        style: style,
-                                      ))),
-                                  Padding(
-                                      padding: const EdgeInsets.all(20),
-                                      child: Center(
-                                          child: Text(
-                                        cub.dataTable?[index - 1]['dose'],
-                                        style: style,
-                                      ))),
-                                  Padding(
-                                      padding: const EdgeInsets.all(20),
-                                      child: Center(
-                                          child: Text(
-                                        cub.dataTable?[index - 1]['check'],
-                                        style: style,
-                                      )))
-                                ]);
-                              }),
-                            )),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(bottom: 40, top: 30),
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 5),
-                                  Column(
-                                    children: [
-                                      SizedBox(
-                                        width: 10,
-                                        height: 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              primary: Colors.green,
-                                              shape: CircleBorder()),
-                                          onPressed: () {},
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 2,
-                                      ),
-                                      Text(
-                                        'Edit',
-                                        style: TextStyle(fontSize: 10),
-                                      )
-                                    ],
-                                  ),
-                                  SizedBox(width: 5),
-                                  Column(
-                                    children: [
-                                      SizedBox(
-                                        width: 10,
-                                        height: 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              primary: Colors.red,
-                                              shape: CircleBorder()),
-                                          onPressed: () {},
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 2,
-                                      ),
-                                      Text(
-                                        'Delete',
-                                        style: TextStyle(fontSize: 10),
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 40,
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 5),
-                                  Column(
-                                    children: [
-                                      SizedBox(
-                                        width: 10,
-                                        height: 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              primary: Colors.green,
-                                              shape: CircleBorder()),
-                                          onPressed: () {},
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 2,
-                                      ),
-                                      Text(
-                                        'Edit',
-                                        style: TextStyle(fontSize: 10),
-                                      )
-                                    ],
-                                  ),
-                                  SizedBox(width: 5),
-                                  Column(
-                                    children: [
-                                      SizedBox(
-                                        width: 10,
-                                        height: 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              primary: Colors.red,
-                                              shape: CircleBorder()),
-                                          onPressed: () {},
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 2,
-                                      ),
-                                      Text(
-                                        'Delete',
-                                        style: TextStyle(fontSize: 10),
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 5),
-                                  Column(
-                                    children: [
-                                      SizedBox(
-                                        width: 10,
-                                        height: 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              primary: Colors.green,
-                                              shape: CircleBorder()),
-                                          onPressed: () {},
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 2,
-                                      ),
-                                      Text(
-                                        'Edit',
-                                        style: TextStyle(fontSize: 10),
-                                      )
-                                    ],
-                                  ),
-                                  SizedBox(width: 5),
-                                  Column(
-                                    children: [
-                                      SizedBox(
-                                        width: 10,
-                                        height: 10,
-                                        child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              primary: Colors.red,
-                                              shape: CircleBorder()),
-                                          onPressed: () {},
-                                          child: Text(''),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 2,
-                                      ),
-                                      Text(
-                                        'Delete',
-                                        style: TextStyle(fontSize: 10),
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                )
+                    padding: const EdgeInsets.all(8.0),
+                    child: (state is LoadingDose || state is LoadingDeleteDose)
+                        ? Container()
+                        : Table(
+                            border: TableBorder.all(
+                                borderRadius: BorderRadius.circular(20)),
+                            children: List.generate(
+                                cub.Doeses!.Doses.length + 1,
+                                (index) => BuildRow(index)),
+                          ))
               ],
             ),
           ));

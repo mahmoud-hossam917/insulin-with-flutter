@@ -9,6 +9,10 @@ Widget MyText(text, color, fontSize, fontWeight) {
   );
 }
 
-const DOSE = 'http://smartinsulin-001-site1.itempurl.com/api/doses';
+const DOSE = 'http://smartinsulin-001-site1.itempurl.com/api/doses/PostDose';
 const userDoses =
-    'http://smartinsulin-001-site1.itempurl.com/api/doses/?userid=5';
+    'http://smartinsulin-001-site1.itempurl.com/api/doses/GetDoses';
+const DeleteDOSE =
+    'http://smartinsulin-001-site1.itempurl.com/api/doses/DeleteDose';
+const UpdateDOSE =
+    'http://smartinsulin-001-site1.itempurl.com/api/doses/PutDose';
